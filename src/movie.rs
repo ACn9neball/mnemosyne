@@ -62,8 +62,14 @@ pub fn add() -> Result<()> {
         unique_id: unique_id,
     };
     c.execute(
-        "INSERT INTO movie (audio, year, original, unique_id , date) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        (&movie.audio, &movie.year, &movie.original, &movie.unique_id, &movie.date),
+        "INSERT INTO movie (audio, year, original, unique_id , date) VALUES (?1, ?2, ?3, ?4, ?5)",
+        (
+            &movie.audio,
+            &movie.year,
+            &movie.original,
+            &movie.unique_id,
+            &movie.date,
+        ),
     )?;
     println!("Added.");
 

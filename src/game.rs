@@ -54,7 +54,7 @@ pub fn add() -> Result<()> {
         unique_id: unique_id,
     };
     c.execute(
-        "INSERT INTO game (year, original, unique_id, genre, date) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        "INSERT INTO game (year, original, unique_id, genre, date) VALUES (?1, ?2, ?3, ?4, ?5)",
         (
             &game.year,
             &game.original,
