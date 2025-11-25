@@ -107,7 +107,7 @@ pub fn view(id: i64) -> Result<()> {
             println!("Episode: {}", a.episode);
             println!("Completed: {}", a.completed);
             println!("Date: {}", a.date);
-            println!("Unique_ID: {}", a.id.to_string());
+            println!("Unique_ID: {}", a.unique_id.to_string());
         }
     }
 

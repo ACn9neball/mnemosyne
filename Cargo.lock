@@ -12,16 +12,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anime"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "clap",
- "cli-table",
- "rusqlite",
-]
-
-[[package]]
 name = "anstream"
 version = "0.6.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -332,10 +322,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 
 [[package]]
+name = "man"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ebf5fa795187a80147b1ac10aaedcf5ffd3bbeb1838bda61801a1c9ad700a1c9"
+dependencies = [
+ "roff",
+]
+
+[[package]]
 name = "memchr"
 version = "2.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
+
+[[package]]
+name = "mnemosyne"
+version = "0.1.1"
+dependencies = [
+ "chrono",
+ "clap",
+ "cli-table",
+ "man",
+ "rusqlite",
+]
 
 [[package]]
 name = "num-traits"
@@ -381,6 +391,12 @@ checksum = "a338cc41d27e6cc6dce6cefc13a0729dfbb81c262b1f519331575dd80ef3067f"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "roff"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e33e4fb37ba46888052c763e4ec2acfedd8f00f62897b630cadb6298b833675e"
 
 [[package]]
 name = "rusqlite"

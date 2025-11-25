@@ -105,7 +105,7 @@ pub fn view(id: i64) -> Result<()> {
             println!("Episode: {}", m.chapter);
             println!("Completed: {}", m.completed);
             println!("Date: {}", m.date);
-            println!("Unique_ID: {}", m.id.to_string());
+            println!("Unique_ID: {}", m.unique_id.to_string());
         }
     }
 
@@ -223,4 +223,3 @@ fn input() -> String {
 
     return value.trim().parse().unwrap();
 }
-

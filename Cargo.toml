@@ -1,10 +1,13 @@
 [package]
-name = "anime"
-version = "0.1.0"
+name = "mnemosyne"
+version = "0.1.1"
 edition = "2024"
 
 [dependencies]
 clap = {version = "4.0", features = ["derive"]}
 rusqlite = {version = "0.37.0", features = ["bundled"]}
 chrono = "0.4"
-cli-table = "0.5"
+cli-table = "0.5" 
+
+[build-dependencies]
+man = "0.3.0"

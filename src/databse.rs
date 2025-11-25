@@ -1,17 +1,15 @@
 use rusqlite::{Connection, Result};
-use std::fs::metadata;
 
 pub fn db_setup(data: &str) -> Result<()> {
-    if !metadata(data).is_ok() {
-        let c = Connection::open(data)?;
+    let c = Connection::open(data)?;
 
-        c.execute(
-            "CREATE TABLE main (unique_id INTEGER PRIMARY KEY, title TEXT NOT NULL)",
-            (),
-        )?;
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS main (unique_id INTEGER PRIMARY KEY, title TEXT NOT NULL)",
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE anime (
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS anime (
             id INTEGER PRIMARY KEY,
             audio TEXT NOT NULL,
             year INTEGER,
@@ -20,11 +18,11 @@ pub fn db_setup(data: &str) -> Result<()> {
             unique_id INTEGER,
             date TEXT NOT NULL
         )",
-            (),
-        )?;
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE manga (
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS manga (
             id INTEGER PRIMARY KEY,
             type TEXT NOT NULL,
             year INTEGER,
@@ -33,11 +31,11 @@ pub fn db_setup(data: &str) -> Result<()> {
             unique_id INTEGER,
             date TEXT NOT NULL
         )",
-            (),
-        )?;
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE cartoon (
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS cartoon (
             id INTEGER PRIMARY KEY,
             audio TEXT NOT NULL,
             year INTEGER,
@@ -46,11 +44,11 @@ pub fn db_setup(data: &str) -> Result<()> {
             unique_id INTEGER,
             date TEXT NOT NULL
         )",
-            (),
-        )?;
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE series (
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS series (
             id INTEGER PRIMARY KEY,
             audio TEXT NOT NULL,
             year INTEGER,
@@ -59,11 +57,11 @@ pub fn db_setup(data: &str) -> Result<()> {
             unique_id INTEGER,
             date TEXT NOT NULL
         )",
-            (),
-        )?;
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE movie (
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS movie (
             id INTEGER PRIMARY KEY,
             audio TEXT NOT NULL,
             year INTEGER,
@@ -71,11 +69,11 @@ pub fn db_setup(data: &str) -> Result<()> {
             unique_id INTEGER,
             date TEXT NOT NULL
         )",
-            (),
-        )?;
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE comic (
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS comic (
             id INTEGER PRIMARY KEY,
             year INTEGER,
             chapter TEXT,
@@ -83,13 +81,25 @@ pub fn db_setup(data: &str) -> Result<()> {
             unique_id INTEGER,
             date TEXT NOT NULL
         )",
-            (),
-        )?;
+        (),
+    )?;
 
-        c.execute(
-            "CREATE TABLE genre (unique_id INTEGER, genre TEXT NOT NULL)",
-            (),
-        )?;
-    }
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS genre (unique_id INTEGER, genre TEXT NOT NULL)",
+        (),
+    )?;
+
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS game (
+            id INTEGER PRIMARY KEY,
+            year INTEGER,
+            original TEXT,
+            unique_id INTEGER,
+            genre TEXT,
+            date TEXT NOT NULL
+        )",
+        (),
+    )?;
+
     Ok(())
 }

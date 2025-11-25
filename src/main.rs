@@ -3,6 +3,7 @@ mod cartoon;
 mod center;
 mod comic;
 mod databse;
+mod game;
 mod manga;
 mod movie;
 mod series;
@@ -30,13 +31,14 @@ struct Cli {
 
 #[derive(ValueEnum, Clone)]
 enum Commands {
-    Main,
+    All,
     Anime,
     Manga,
     Series,
     Cartoon,
     Comic,
     Movie,
+    Game,
 }
 
 fn main() {
@@ -46,17 +48,18 @@ fn main() {
     let cli = Cli::parse();
     if let Some(op) = cli.add {
         match op {
-            Commands::Main => println!("!Applicable"),
+            Commands::All => println!("!Applicable"),
             Commands::Anime => anime::add().expect("Anime !Added"),
             Commands::Manga => manga::add().expect("Manga !Added"),
             Commands::Series => series::add().expect("Series !Added"),
             Commands::Cartoon => cartoon::add().expect("Cartoon !Added"),
             Commands::Comic => comic::add().expect("Comic !Added"),
             Commands::Movie => movie::add().expect("Movie !Added"),
+            Commands::Game => game::add().expect("Game !Added"),
         }
     } else if let Some(op) = cli.view {
         match op {
-            Commands::Main => println!("!Applicable"),
+            Commands::All => println!("!Applicable"),
             Commands::Anime => {
                 println!("Unique_ID");
                 unique_id = input().parse().expect("!Integer");
@@ -87,10 +90,15 @@ fn main() {
                 unique_id = input().parse().expect("!Integer");
                 movie::view(unique_id).expect("Movie !Viewed");
             }
+            Commands::Game => {
+                println!("Unique_ID");
+                unique_id = input().parse().expect("!Integer");
+                game::view(unique_id).expect("Game !Viewed");
+            }
         }
     } else if let Some(op) = cli.update {
         match op {
-            Commands::Main => {
+            Commands::All => {
                 println!("Unique_ID");
                 unique_id = input().parse().expect("!Integer");
                 center::update(unique_id).expect("!Updated");
@@ -125,10 +133,15 @@ fn main() {
                 unique_id = input().parse().expect("!Integer");
                 movie::update(unique_id).expect("Movie !Updated");
             }
+            Commands::Game => {
+                println!("Unique_ID");
+                unique_id = input().parse().expect("!Integer");
+                game::update(unique_id).expect("Game !Updated");
+            }
         }
     } else if let Some(op) = cli.remove {
         match op {
-            Commands::Main => println!("!Applicable"),
+            Commands::All => println!("!Applicable"),
             Commands::Anime => {
                 println!("Unique_ID");
                 unique_id = input().parse().expect("!Integer");
@@ -157,18 +170,24 @@ fn main() {
             Commands::Movie => {
                 println!("Unique_ID");
                 unique_id = input().parse().expect("!Integer");
-                movie::remove(unique_id).expect("MOvie !Removed");
+                movie::remove(unique_id).expect("Movie !Removed");
+            }
+            Commands::Game => {
+                println!("Unique_ID");
+                unique_id = input().parse().expect("!Integer");
+                game::remove(unique_id).expect("Game !Removed");
             }
         }
     } else if let Some(op) = cli.display {
         match op {
-            Commands::Main => center::display().expect("!Displayed"),
+            Commands::All => center::display().expect("!Displayed"),
             Commands::Anime => anime::display().expect("Anime !Displayed"),
             Commands::Manga => manga::display().expect("Manga !Displayed"),
             Commands::Series => series::display().expect("Series !Displayed"),
             Commands::Cartoon => cartoon::display().expect("Cartoon !Displayed"),
             Commands::Comic => comic::display().expect("Comic !Displayed"),
             Commands::Movie => movie::display().expect("Movie !Displayed"),
+            Commands::Game => game::display().expect("Game !Displayed"),
         }
     }
 }

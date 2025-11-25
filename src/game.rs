@@ -11,9 +11,9 @@ struct Main {
 }
 
 #[derive(Debug)]
-struct Movie {
+struct Game {
     id: i64,
-    audio: String,
+    genre: String,
     year: i32,
     original: String,
     date: String,
@@ -37,33 +37,31 @@ pub fn add() -> Result<()> {
         println!("Unique_ID");
         unique_id = input().parse().expect("!Integer");
     }
-    println!("Movie Title");
+    println!("Game Title");
     let original = input();
     println!("Year");
     let year: i32 = input().parse().expect("!Integer");
-    println!("Audio [j/e/b/o]");
-    let audio_char: String = input().to_lowercase();
-    let mut audio: String = "Other".to_string();
-    if audio_char == "j" {
-        audio = "Japanese".to_string();
-    } else if audio_char == "e" {
-        audio = "English".to_string();
-    } else if audio_char == "b" {
-        audio = "Both".to_string();
-    }
+    println!("Main Genre");
+    let genre: String = input();
     let current_date: DateTime<Local> = Local::now();
     let date = current_date.format("%Y/%m/%d/%H/%M/%S").to_string();
-    let movie = Movie {
+    let game = Game {
         id: 0,
-        audio: audio,
+        genre: genre,
         year: year,
         date: date,
         original: original,
         unique_id: unique_id,
     };
     c.execute(
-        "INSERT INTO movie (audio, year, original, unique_id , date) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        (&movie.audio, &movie.year, &movie.original, &movie.unique_id, &movie.date),
+        "INSERT INTO game (year, original, unique_id, genre, date) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        (
+            &game.year,
+            &game.original,
+            &game.unique_id,
+            &game.genre,
+            &game.date,
+        ),
     )?;
     println!("Added.");
 
@@ -72,28 +70,28 @@ pub fn add() -> Result<()> {
 
 pub fn view(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
-    let mut movie_table = c.prepare(
-        "SELECT movie.*, main.title FROM movie JOIN main ON movie.unique_id = main.unique_id",
+    let mut game_table = c.prepare(
+        "SELECT game.*, main.title FROM game JOIN main ON game.unique_id = main.unique_id",
     )?;
-    let movie_iter = movie_table.query_map([], |row| {
-        Ok(Movie {
+    let game_iter = game_table.query_map([], |row| {
+        Ok(Game {
             id: row.get(0)?,
-            audio: row.get(1)?,
-            year: row.get(2)?,
-            original: row.get(3)?,
-            unique_id: row.get(4)?,
+            year: row.get(1)?,
+            original: row.get(2)?,
+            unique_id: row.get(3)?,
+            genre: row.get(4)?,
             date: row.get(5)?,
         })
     })?;
-    for movie in movie_iter {
-        let m = movie.unwrap();
-        let unique_id: i64 = m.id;
+    for game in game_iter {
+        let g = game.unwrap();
+        let unique_id: i64 = g.id;
         if id == unique_id {
-            println!("Title: {}", m.original);
-            println!("Audio: {}", m.audio);
-            println!("Year: {}", m.year.to_string());
-            println!("Date: {}", m.date);
-            println!("Unique_ID: {}", m.unique_id.to_string());
+            println!("Title: {}", g.original);
+            println!("Year: {}", g.year.to_string());
+            println!("Genre: {}", g.genre);
+            println!("Date: {}", g.date);
+            println!("Unique_ID: {}", g.unique_id.to_string());
         }
     }
 
@@ -104,31 +102,23 @@ pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
     let year: i32 = input().parse().expect("!Integer");
-    println!("Audio [j/e/b/o]");
-    let audio_char: String = input().to_lowercase();
-    let mut audio: String = "Other".to_string();
-    if audio_char == "j" {
-        audio = "Japanese".to_string();
-    } else if audio_char == "e" {
-        audio = "English".to_string();
-    } else if audio_char == "b" {
-        audio = "Both".to_string();
-    }
-    println!("Movie Title");
+    println!("Genre");
+    let genre: String = input();
+    println!("Game Title");
     let original = input();
     let current_date: DateTime<Local> = Local::now();
     let date = current_date.format("%Y/%m/%d/%H/%M/%S").to_string();
-    let movie = Movie {
+    let game = Game {
         id: 0,
-        audio: audio,
+        genre: genre,
         year: year,
         date: date,
         unique_id: 0,
         original: original,
     };
     c.execute(
-        "UPDATE movie SET audio = ?2, year = ?3, original = ?4, date = ?5 WHERE id = ?1",
-        (id, &movie.audio, &movie.year, &movie.original, &movie.date),
+        "UPDATE game SET genre = ?2, year = ?3, original = ?4, date = ?5 WHERE id = ?1",
+        (id, &game.genre, &game.year, &game.original, &game.date),
     )?;
     println!("Updated!");
 
@@ -137,7 +127,7 @@ pub fn update(id: i64) -> Result<()> {
 
 pub fn remove(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
-    c.execute("DELETE FROM movie WHERE id = ?1", (id,))?;
+    c.execute("DELETE FROM game WHERE id = ?1", (id,))?;
     println!("{} removed!", id);
 
     Ok(())
@@ -146,27 +136,27 @@ pub fn remove(id: i64) -> Result<()> {
 pub fn display() -> Result<(), Box<dyn Error>> {
     let c = Connection::open(DB)?;
     let mut all = c.prepare(
-        "SELECT movie.*, main.title FROM movie JOIN main ON movie.unique_id = main.unique_id",
+        "SELECT game.*, main.title FROM game JOIN main ON game.unique_id = main.unique_id",
     )?;
-    let movie_iter = all.query_map([], |row| {
-        Ok(Movie {
+    let game_iter = all.query_map([], |row| {
+        Ok(Game {
             id: row.get(0)?,
-            audio: row.get(1)?,
-            year: row.get(2)?,
-            original: row.get(3)?,
-            unique_id: row.get(4)?,
+            year: row.get(1)?,
+            original: row.get(2)?,
+            unique_id: row.get(3)?,
+            genre: row.get(4)?,
             date: row.get(5)?,
         })
     })?;
     let mut data = Vec::new();
-    for movie in movie_iter {
-        let m = movie.unwrap();
+    for game in game_iter {
+        let g = game.unwrap();
         data.push(vec![
-            m.id.cell(),
-            m.original.cell(),
-            m.audio.cell(),
-            m.year.cell(),
-            m.date.cell(),
+            g.id.cell(),
+            g.original.cell(),
+            g.genre.cell(),
+            g.year.cell(),
+            g.date.cell(),
         ]);
     }
 
@@ -175,7 +165,7 @@ pub fn display() -> Result<(), Box<dyn Error>> {
         .title(vec![
             "ID".cell().bold(true),
             "TITLE".cell().bold(true),
-            "AUDIO".cell().bold(true),
+            "GENRE".cell().bold(true),
             "Year".cell().bold(true),
             "DATE".cell().bold(true),
         ])
