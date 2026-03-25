@@ -101,5 +101,19 @@ pub fn db_setup(data: &str) -> Result<()> {
         (),
     )?;
 
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS project (
+            id INTEGER PRIMARY KEY,
+            language TEXT NOT NULL,
+            year INTEGER,
+            completed TEXT NOT NULL,
+            description TEXT,
+            commited TEXT NOT NULL,
+            unique_id INTEGER,  
+            date TEXT NOT NULL
+        )",
+        (),
+    )?;
+
     Ok(())
 }

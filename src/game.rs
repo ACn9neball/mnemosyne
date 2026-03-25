@@ -101,7 +101,7 @@ pub fn view(id: i64) -> Result<()> {
 pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
-    let year: i32 = input().parse().expect("!Integer");
+    let year: i32 = input().parse().unwrap_or(0);
     println!("Genre");
     let genre: String = input();
     println!("Game Title");
@@ -117,7 +117,12 @@ pub fn update(id: i64) -> Result<()> {
         original: original,
     };
     c.execute(
-        "UPDATE game SET genre = ?2, year = ?3, original = ?4, date = ?5 WHERE id = ?1",
+        "UPDATE game SET 
+        genre = COALESCE(NULLIF(?2, ''), genre), 
+        year = COALESCE(NULLIF(?3, 0), year), 
+        original = COALESCE(NULLIF(?4, ''), original), 
+        date = COALESCE(NULLIF(?5, ''), date) 
+    WHERE id = ?1",
         (id, &game.genre, &game.year, &game.original, &game.date),
     )?;
     println!("Updated!");
@@ -139,6 +144,53 @@ pub fn display() -> Result<(), Box<dyn Error>> {
         "SELECT game.*, main.title FROM game JOIN main ON game.unique_id = main.unique_id",
     )?;
     let game_iter = all.query_map([], |row| {
+        Ok(Game {
+            id: row.get(0)?,
+            year: row.get(1)?,
+            original: row.get(2)?,
+            unique_id: row.get(3)?,
+            genre: row.get(4)?,
+            date: row.get(5)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for game in game_iter {
+        let g = game.unwrap();
+        data.push(vec![
+            g.id.cell(),
+            g.original.cell(),
+            g.genre.cell(),
+            g.year.cell(),
+            g.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "GENRE".cell().bold(true),
+            "Year".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn search() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Game Title");
+    let value = input();
+    let mut all = c.prepare(
+        "SELECT game.*, main.title FROM game JOIN main ON game.unique_id = main.unique_id WHERE main.title LIKE ?1",
+    )?;
+
+    let sp = format!("%{}%", value);
+    let game_iter = all.query_map([&sp], |row| {
         Ok(Game {
             id: row.get(0)?,
             year: row.get(1)?,

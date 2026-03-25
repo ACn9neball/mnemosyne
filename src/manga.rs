@@ -41,13 +41,17 @@ pub fn add() -> Result<()> {
     }
     println!("Year");
     let year: i32 = input().parse().expect("!Integer");
-    println!("Type [mg/mh]");
+    println!("Type [mg/mh/oh]");
     let type_char: String = input().to_lowercase();
-    let mut tp: String = "Other".to_string();
+    let tp: String;
     if type_char == "mg" {
         tp = "Manga".to_string();
     } else if type_char == "mh" {
         tp = "Manhwa".to_string();
+    } else if type_char == "oh" {
+        tp = "Other".to_string();
+    } else {
+        tp = "".to_string();
     }
     println!("Chapter [V? C?]");
     let chapter = input();
@@ -115,14 +119,18 @@ pub fn view(id: i64) -> Result<()> {
 pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
-    let year: i32 = input().parse().expect("!Integer");
-    println!("Type [mg/mh/o]");
+    let year: i32 = input().parse().unwrap_or(0);
+    println!("Type [mg/mh/oh]");
     let type_char: String = input().to_lowercase();
-    let mut tp: String = "Other".to_string();
+    let tp: String;
     if type_char == "mg" {
         tp = "Manga".to_string();
     } else if type_char == "mh" {
         tp = "Manhwa".to_string();
+    } else if type_char == "oh" {
+        tp = "Other".to_string();
+    } else {
+        tp = "".to_string();
     }
     println!("Chapter [V? C?]");
     let chapter = input();
@@ -145,7 +153,13 @@ pub fn update(id: i64) -> Result<()> {
         title: "".to_string(),
     };
     c.execute(
-        "UPDATE manga SET type = ?2, year = ?3, chapter = ?4, completed = ?5, date = ?6 WHERE id = ?1",
+        "UPDATE manga SET 
+        type = COALESCE(NULLIF(?2, ''), type), 
+        year = COALESCE(NULLIF(?3, 0), year), 
+        chapter = COALESCE(NULLIF(?4, ''), chapter), 
+        completed = COALESCE(NULLIF(?5, ''), completed), 
+        date = COALESCE(NULLIF(?6, ''), date) 
+    WHERE id = ?1",
         (
             id,
             &manga.tp,
@@ -174,6 +188,58 @@ pub fn display() -> Result<(), Box<dyn Error>> {
         "SELECT manga.*, main.title FROM manga JOIN main ON manga.unique_id = main.unique_id",
     )?;
     let manga_iter = all.query_map([], |row| {
+        Ok(Manga {
+            id: row.get(0)?,
+            tp: row.get(1)?,
+            year: row.get(2)?,
+            chapter: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for manga in manga_iter {
+        let m = manga.unwrap();
+        data.push(vec![
+            m.id.cell(),
+            m.title.cell(),
+            m.tp.cell(),
+            m.year.cell(),
+            m.chapter.cell(),
+            m.completed.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "TYPE".cell().bold(true),
+            "Year".cell().bold(true),
+            "CHAPTER".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn search() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Manga Title");
+    let value = input();
+    let mut all = c.prepare(
+        "SELECT manga.*, main.title FROM manga JOIN main ON manga.unique_id = main.unique_id WHERE main.title LIKE ?1",
+    )?;
+
+    let sp = format!("%{}%", value);
+
+    let manga_iter = all.query_map([&sp], |row| {
         Ok(Manga {
             id: row.get(0)?,
             tp: row.get(1)?,

@@ -6,6 +6,8 @@ mod databse;
 mod game;
 mod manga;
 mod movie;
+mod online;
+mod project;
 mod series;
 
 use clap::{Parser, ValueEnum};
@@ -27,6 +29,12 @@ struct Cli {
 
     #[arg(short, long, value_enum)]
     display: Option<Commands>,
+
+    #[arg(short, long, value_enum)]
+    search: Option<Commands>,
+
+    #[arg(short, long, value_enum)]
+    current: Option<Commands>,
 }
 
 #[derive(ValueEnum, Clone)]
@@ -39,6 +47,7 @@ enum Commands {
     Comic,
     Movie,
     Game,
+    Project,
 }
 
 fn main() {
@@ -56,6 +65,7 @@ fn main() {
             Commands::Comic => comic::add().expect("Comic !Added"),
             Commands::Movie => movie::add().expect("Movie !Added"),
             Commands::Game => game::add().expect("Game !Added"),
+            Commands::Project => project::add().expect("Project !Added"),
         }
     } else if let Some(op) = cli.view {
         match op {
@@ -94,6 +104,11 @@ fn main() {
                 println!("Unique_ID");
                 unique_id = input().parse().expect("!Integer");
                 game::view(unique_id).expect("Game !Viewed");
+            }
+            Commands::Project => {
+                println!("Unique_ID");
+                unique_id = input().parse().expect("!Integer");
+                project::view(unique_id).expect("Project !Viewed");
             }
         }
     } else if let Some(op) = cli.update {
@@ -138,6 +153,11 @@ fn main() {
                 unique_id = input().parse().expect("!Integer");
                 game::update(unique_id).expect("Game !Updated");
             }
+            Commands::Project => {
+                println!("Unique_ID");
+                unique_id = input().parse().expect("!Integer");
+                project::update(unique_id).expect("Project !Updated");
+            }
         }
     } else if let Some(op) = cli.remove {
         match op {
@@ -177,6 +197,11 @@ fn main() {
                 unique_id = input().parse().expect("!Integer");
                 game::remove(unique_id).expect("Game !Removed");
             }
+            Commands::Project => {
+                println!("Unique_ID");
+                unique_id = input().parse().expect("!Integer");
+                project::remove(unique_id).expect("Project !Removed");
+            }
         }
     } else if let Some(op) = cli.display {
         match op {
@@ -188,6 +213,31 @@ fn main() {
             Commands::Comic => comic::display().expect("Comic !Displayed"),
             Commands::Movie => movie::display().expect("Movie !Displayed"),
             Commands::Game => game::display().expect("Game !Displayed"),
+            Commands::Project => project::display().expect("Project !Displayed"),
+        }
+    } else if let Some(op) = cli.search {
+        match op {
+            Commands::All => center::search().expect("!Displayed"),
+            Commands::Anime => anime::search().expect("Anime !Displayed"),
+            Commands::Manga => manga::search().expect("Manga !Displayed"),
+            Commands::Series => series::search().expect("Series !Displayed"),
+            Commands::Cartoon => cartoon::search().expect("Cartoon !Displayed"),
+            Commands::Comic => comic::search().expect("Comic !Displayed"),
+            Commands::Movie => movie::search().expect("Movie !Displayed"),
+            Commands::Game => game::search().expect("Game !Displayed"),
+            Commands::Project => project::search().expect("Project !Displayed"),
+        }
+    } else if let Some(op) = cli.current {
+        match op {
+            Commands::All => println!("Error"),
+            Commands::Anime => online::anime_ranking().expect("Anime !Displayed"),
+            Commands::Manga => online::manga_ranking().expect("Manga !Displayed"),
+            Commands::Series => series::display().expect("Series !Displayed"),
+            Commands::Cartoon => cartoon::display().expect("Cartoon !Displayed"),
+            Commands::Comic => comic::display().expect("Comic !Displayed"),
+            Commands::Movie => movie::display().expect("Movie !Displayed"),
+            Commands::Game => game::display().expect("Game !Displayed"),
+            Commands::Project => project::display().expect("Project !Displayed"),
         }
     }
 }

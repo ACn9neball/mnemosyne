@@ -103,7 +103,7 @@ pub fn view(id: i64) -> Result<()> {
 pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
-    let year: i32 = input().parse().expect("!Integer");
+    let year: i32 = input().parse().unwrap_or(0);
     println!("Chapter [V? C?]");
     let chapter = input();
     println!("Completed [y/n]");
@@ -124,7 +124,12 @@ pub fn update(id: i64) -> Result<()> {
         title: "".to_string(),
     };
     c.execute(
-        "UPDATE comic SET year = ?3, chapter = ?4, completed = ?5, date = ?6 WHERE id = ?1",
+        "UPDATE comic SET
+        year = COALESCE(NULLIF(?3, 0), year), 
+        chapter = COALESCE(NULLIF(?4, ''), chapter),
+        completed = COALESCE(NULLIF(?5, ''), completed),
+        date = COALESCE(NULLIF(?6, ''), date) 
+    WHERE id = ?1",
         (
             id,
             &comic.year,
@@ -152,6 +157,56 @@ pub fn display() -> Result<(), Box<dyn Error>> {
         "SELECT comic.*, main.title FROM comic JOIN main ON comic.unique_id = main.unique_id",
     )?;
     let comic_iter = all.query_map([], |row| {
+        Ok(Comic {
+            id: row.get(0)?,
+            year: row.get(2)?,
+            chapter: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for comic in comic_iter {
+        let c = comic.unwrap();
+        data.push(vec![
+            c.id.cell(),
+            c.title.cell(),
+            c.year.cell(),
+            c.chapter.cell(),
+            c.completed.cell(),
+            c.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "Year".cell().bold(true),
+            "CHAPTER".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn search() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Comic Title");
+    let value = input();
+    let mut all = c.prepare(
+        "SELECT comic.*, main.title FROM comic JOIN main ON comic.unique_id = main.unique_id WHERE main.title LIKE ?1",
+    )?;
+
+    let sp = format!("%{}%", value);
+    let comic_iter = all.query_map([&sp], |row| {
         Ok(Comic {
             id: row.get(0)?,
             year: row.get(2)?,
