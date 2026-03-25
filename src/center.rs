@@ -19,7 +19,7 @@ pub fn update(id: i64) -> Result<()> {
         title: title.clone(),
     };
     c.execute(
-        "UPDATE main SET title = ?2 WHERE unique_id = ?1",
+        "UPDATE main SET title = COALESCE(NULLIF(?2, ''), title) WHERE unique_id = ?1",
         (id, &main.title),
     )?;
     println!("{} added.", title);
@@ -31,6 +31,41 @@ pub fn display() -> Result<(), Box<dyn Error>> {
     let c = Connection::open(DB)?;
     let mut all = c.prepare("SELECT * FROM main")?;
     let main_iter = all.query_map([], |row| {
+        Ok(Main {
+            unique_id: row.get(0)?,
+            title: row.get(1)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for main in main_iter {
+        let m = main.unwrap();
+        data.push(vec![
+            m.unique_id.cell().bold(true),
+            m.title.cell().bold(true),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "Unique_ID".cell().bold(true),
+            "Title".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn search() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Title");
+    let value = input();
+    let mut all = c.prepare("SELECT * FROM main WHERE main.title LIKE ?1")?;
+
+    let sp = format!("%{}%", value);
+    let main_iter = all.query_map([&sp], |row| {
         Ok(Main {
             unique_id: row.get(0)?,
             title: row.get(1)?,

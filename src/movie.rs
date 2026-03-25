@@ -109,16 +109,18 @@ pub fn view(id: i64) -> Result<()> {
 pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
-    let year: i32 = input().parse().expect("!Integer");
+    let year: i32 = input().parse().unwrap_or(0);
     println!("Audio [j/e/b/o]");
     let audio_char: String = input().to_lowercase();
-    let mut audio: String = "Other".to_string();
+    let audio: String;
     if audio_char == "j" {
         audio = "Japanese".to_string();
     } else if audio_char == "e" {
         audio = "English".to_string();
     } else if audio_char == "b" {
         audio = "Both".to_string();
+    } else {
+        audio = "Other".to_string();
     }
     println!("Movie Title");
     let original = input();
@@ -133,7 +135,12 @@ pub fn update(id: i64) -> Result<()> {
         original: original,
     };
     c.execute(
-        "UPDATE movie SET audio = ?2, year = ?3, original = ?4, date = ?5 WHERE id = ?1",
+        "UPDATE movie SET
+        audio = COALESCE(NULLIF(?2, ''), audio),
+        year = COALESCE(NULLIF(?3, 0), year), 
+        original = COALESCE(NULLIF(?4, ''), original),
+        date = COALESCE(NULLIF(?5, ''), date) 
+    WHERE id = ?1",
         (id, &movie.audio, &movie.year, &movie.original, &movie.date),
     )?;
     println!("Updated!");
@@ -155,6 +162,53 @@ pub fn display() -> Result<(), Box<dyn Error>> {
         "SELECT movie.*, main.title FROM movie JOIN main ON movie.unique_id = main.unique_id",
     )?;
     let movie_iter = all.query_map([], |row| {
+        Ok(Movie {
+            id: row.get(0)?,
+            audio: row.get(1)?,
+            year: row.get(2)?,
+            original: row.get(3)?,
+            unique_id: row.get(4)?,
+            date: row.get(5)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for movie in movie_iter {
+        let m = movie.unwrap();
+        data.push(vec![
+            m.id.cell(),
+            m.original.cell(),
+            m.audio.cell(),
+            m.year.cell(),
+            m.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "AUDIO".cell().bold(true),
+            "Year".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn search() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Movie Title");
+    let value = input();
+    let mut all = c.prepare(
+        "SELECT movie.*, main.title FROM movie JOIN main ON movie.unique_id = main.unique_id WHERE main.title LIKE ?1",
+    )?;
+
+    let sp = format!("%{}%", value);
+    let movie_iter = all.query_map([&sp], |row| {
         Ok(Movie {
             id: row.get(0)?,
             audio: row.get(1)?,

@@ -43,13 +43,15 @@ pub fn add() -> Result<()> {
     let year: i32 = input().parse().expect("!Integer");
     println!("Audio [j/e/b/o]");
     let audio_char: String = input().to_lowercase();
-    let mut audio: String = "Other".to_string();
+    let audio: String;
     if audio_char == "j" {
         audio = "Japanese".to_string();
     } else if audio_char == "e" {
         audio = "English".to_string();
     } else if audio_char == "b" {
         audio = "Both".to_string();
+    } else {
+        audio = "Other".to_string();
     }
     println!("Episode [S? E?]");
     let episode = input();
@@ -117,7 +119,7 @@ pub fn view(id: i64) -> Result<()> {
 pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
-    let year: i32 = input().parse().expect("!Integer");
+    let year: i32 = input().parse().unwrap_or(0);
     println!("Audio [j/e/b/o]");
     let audio_char: String = input().to_lowercase();
     let mut audio: String = "Other".to_string();
@@ -149,7 +151,13 @@ pub fn update(id: i64) -> Result<()> {
         title: "".to_string(),
     };
     c.execute(
-        "UPDATE cartoon SET audio = ?2, year = ?3, episode = ?4, completed = ?5, date = ?6 WHERE id = ?1",
+        "UPDATE cartoon SET
+        audio = COALESCE(NULLIF(?2, ''), audio), 
+        year = COALESCE(NULLIF(?3, 0), year), 
+        episode = COALESCE(NULLIF(?4, ''), episode),
+        completed = COALESCE(NULLIF(?5, ''), completed),
+        date = COALESCE(NULLIF(?6, ''), date) 
+    WHERE id = ?1",
         (
             id,
             &cartoon.audio,
@@ -178,6 +186,59 @@ pub fn display() -> Result<(), Box<dyn Error>> {
         "SELECT cartoon.*, main.title FROM cartoon JOIN main ON cartoon.unique_id = main.unique_id",
     )?;
     let cartoon_iter = all.query_map([], |row| {
+        Ok(Cartoon {
+            id: row.get(0)?,
+            audio: row.get(1)?,
+            year: row.get(2)?,
+            episode: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for cartoon in cartoon_iter {
+        let c = cartoon.unwrap();
+        data.push(vec![
+            c.id.cell(),
+            c.title.cell(),
+            c.audio.cell(),
+            c.year.cell(),
+            c.episode.cell(),
+            c.completed.cell(),
+            c.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "AUDIO".cell().bold(true),
+            "Year".cell().bold(true),
+            "EPISODE".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn search() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Cartoon Title");
+    let value = input();
+    let mut all = c.prepare(
+        "SELECT cartoon.*, main.title FROM cartoon JOIN main ON cartoon.unique_id = main.unique_id WHERE main.title LIKE ?1",
+    )?;
+
+    let sp = format!("%{}%", value);
+    let cartoon_iter = all.query_map([&sp], |row| {
         Ok(Cartoon {
             id: row.get(0)?,
             audio: row.get(1)?,
