@@ -1,17 +1,18 @@
-# Project Title
+# Mnemosyne
 
 Simple overview of use/purpose.
 
 ## Description
 
-Simple to use CLI application built in rust used to store information
+Simple to use CLI application built in rust used to store information on media consumed namely anime, manga, cartoon, comics, movies, and even projects made but I may be removing that feature.  
 
 ## Getting Started
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* Linux
+* Rust up I think
+* Cargo
 
 ### Installing
 
