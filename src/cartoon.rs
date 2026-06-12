@@ -41,17 +41,11 @@ pub fn add() -> Result<()> {
     }
     println!("Year");
     let year: i32 = input().parse().expect("!Integer");
-    println!("Audio [j/e/b/o]");
+    println!("Audio [e/o]");
     let audio_char: String = input().to_lowercase();
-    let audio: String;
-    if audio_char == "j" {
-        audio = "Japanese".to_string();
-    } else if audio_char == "e" {
+    let mut audio: String = "Other".to_string();
+    if audio_char == "e" {
         audio = "English".to_string();
-    } else if audio_char == "b" {
-        audio = "Both".to_string();
-    } else {
-        audio = "Other".to_string();
     }
     println!("Episode [S? E?]");
     let episode = input();
@@ -120,15 +114,15 @@ pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
     let year: i32 = input().parse().unwrap_or(0);
-    println!("Audio [j/e/b/o]");
+    println!("Audio [e/o]");
     let audio_char: String = input().to_lowercase();
-    let mut audio: String = "Other".to_string();
-    if audio_char == "j" {
-        audio = "Japanese".to_string();
-    } else if audio_char == "e" {
+    let audio: String;
+    if audio_char == "e" {
         audio = "English".to_string();
-    } else if audio_char == "b" {
-        audio = "Both".to_string();
+    } else if audio_char == "o" {
+        audio = "Other".to_string();
+    } else {
+        audio = "".to_string();
     }
     println!("Episode [S? E?]");
     let episode = input();
@@ -151,11 +145,11 @@ pub fn update(id: i64) -> Result<()> {
         title: "".to_string(),
     };
     c.execute(
-        "UPDATE cartoon SET
+        "UPDATE cartoon SET 
         audio = COALESCE(NULLIF(?2, ''), audio), 
         year = COALESCE(NULLIF(?3, 0), year), 
-        episode = COALESCE(NULLIF(?4, ''), episode),
-        completed = COALESCE(NULLIF(?5, ''), completed),
+        episode = COALESCE(NULLIF(?4, ''), episode), 
+        completed = COALESCE(NULLIF(?5, ''), completed), 
         date = COALESCE(NULLIF(?6, ''), date) 
     WHERE id = ?1",
         (

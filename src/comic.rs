@@ -247,6 +247,56 @@ pub fn search() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn incomplete() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    println!("Comic Title");
+    let value = input();
+    let mut all = c.prepare(
+        "SELECT comic.*, main.title FROM comic JOIN main ON comic.unique_id = main.unique_id WHERE comic.complete = 'No'",
+    )?;
+
+    let sp = format!("%{}%", value);
+    let comic_iter = all.query_map([&sp], |row| {
+        Ok(Comic {
+            id: row.get(0)?,
+            year: row.get(2)?,
+            chapter: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for comic in comic_iter {
+        let c = comic.unwrap();
+        data.push(vec![
+            c.id.cell(),
+            c.title.cell(),
+            c.year.cell(),
+            c.chapter.cell(),
+            c.completed.cell(),
+            c.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "Year".cell().bold(true),
+            "CHAPTER".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
 fn input() -> String {
     let mut value: String = String::new();
     io::stdin().read_line(&mut value).expect("Failed");
