@@ -279,7 +279,7 @@ pub fn search() -> Result<(), Box<dyn Error>> {
 pub fn incomplete() -> Result<(), Box<dyn Error>> {
     let c = Connection::open(DB)?;
     let mut all = c.prepare(
-        "SELECT series.*, main.title FROM series JOIN main ON series.unique_id = main.unique_id WHERE series.complete = 'No'",
+        "SELECT series.*, main.title FROM series JOIN main ON series.unique_id = main.unique_id WHERE series.completed = 'No'",
     )?;
 
     let series_iter = all.query_map([], |row| {

@@ -286,7 +286,7 @@ pub fn search() -> Result<(), Box<dyn Error>> {
 pub fn incomplete() -> Result<(), Box<dyn Error>> {
     let c = Connection::open(DB)?;
     let mut all = c.prepare(
-        "SELECT manga.*, main.title FROM manga JOIN main ON manga.unique_id = main.unique_id WHERE manga.complete = 'No'",
+        "SELECT manga.*, main.title FROM manga JOIN main ON manga.unique_id = main.unique_id WHERE manga.completed = 'No'",
     )?;
 
     let manga_iter = all.query_map([], |row| {
