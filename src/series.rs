@@ -278,14 +278,11 @@ pub fn search() -> Result<(), Box<dyn Error>> {
 
 pub fn incomplete() -> Result<(), Box<dyn Error>> {
     let c = Connection::open(DB)?;
-    println!("Enter Series");
-    let value = input();
     let mut all = c.prepare(
         "SELECT series.*, main.title FROM series JOIN main ON series.unique_id = main.unique_id WHERE series.complete = 'No'",
     )?;
 
-    let sp = format!("%{}%", value);
-    let series_iter = all.query_map([&sp], |row| {
+    let series_iter = all.query_map([], |row| {
         Ok(Series {
             id: row.get(0)?,
             audio: row.get(1)?,

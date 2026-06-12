@@ -191,10 +191,10 @@ fn main() {
             Commands::All => println!("Error"),
             Commands::Anime => anime::incomplete().expect("Anime !Displayed"),
             Commands::Manga => manga::incomplete().expect("Manga !Displayed"),
-            Commands::Series => series::display().expect("Series !Displayed"),
-            Commands::Cartoon => cartoon::display().expect("Cartoon !Displayed"),
-            Commands::Comic => comic::display().expect("Comic !Displayed"),
-            Commands::Movie => movie::display().expect("Movie !Displayed"),
+            Commands::Series => series::incomplete().expect("Series !Displayed"),
+            Commands::Cartoon => cartoon::incomplete().expect("Cartoon !Displayed"),
+            Commands::Comic => comic::incomplete().expect("Comic !Displayed"),
+            Commands::Movie => println!("Function does not exist"),
         }
     }
 }

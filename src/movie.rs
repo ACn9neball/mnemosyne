@@ -119,8 +119,10 @@ pub fn update(id: i64) -> Result<()> {
         audio = "English".to_string();
     } else if audio_char == "b" {
         audio = "Both".to_string();
-    } else {
+    } else if audio_char == "o" {
         audio = "Other".to_string();
+    } else {
+        audio = "".to_string();
     }
     println!("Movie Title");
     let original = input();

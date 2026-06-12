@@ -249,14 +249,11 @@ pub fn search() -> Result<(), Box<dyn Error>> {
 
 pub fn incomplete() -> Result<(), Box<dyn Error>> {
     let c = Connection::open(DB)?;
-    println!("Comic Title");
-    let value = input();
     let mut all = c.prepare(
         "SELECT comic.*, main.title FROM comic JOIN main ON comic.unique_id = main.unique_id WHERE comic.complete = 'No'",
     )?;
 
-    let sp = format!("%{}%", value);
-    let comic_iter = all.query_map([&sp], |row| {
+    let comic_iter = all.query_map([], |row| {
         Ok(Comic {
             id: row.get(0)?,
             year: row.get(2)?,
