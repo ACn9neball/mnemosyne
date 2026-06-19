@@ -32,6 +32,9 @@ struct Cli {
 
     #[arg(short, long, value_enum)]
     incomplete: Option<Commands>,
+
+    #[arg(short, long, value_enum)]
+    order: Option<Commands>,
 }
 
 #[derive(ValueEnum, Clone)]
@@ -194,6 +197,16 @@ fn main() {
             Commands::Series => series::incomplete().expect("Series !Displayed"),
             Commands::Cartoon => cartoon::incomplete().expect("Cartoon !Displayed"),
             Commands::Comic => comic::incomplete().expect("Comic !Displayed"),
+            Commands::Movie => println!("Function does not exist"),
+        }
+    } else if let Some(op) = cli.order {
+        match op {
+            Commands::All => println!("Error"),
+            Commands::Anime => anime::order().expect("Anime !Displayed"),
+            Commands::Manga => manga::order().expect("Manga !Displayed"),
+            Commands::Series => series::order().expect("Series !Displayed"),
+            Commands::Cartoon => cartoon::order().expect("Cartoon !Displayed"),
+            Commands::Comic => comic::order().expect("Comic !Displayed"),
             Commands::Movie => println!("Function does not exist"),
         }
     }

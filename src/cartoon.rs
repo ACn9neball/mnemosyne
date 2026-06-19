@@ -326,6 +326,57 @@ pub fn incomplete() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn order() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    let mut all = c.prepare(
+        "SELECT cartoon.*, main.title FROM cartoon JOIN main ON cartoon.unique_id = main.unique_id",
+    )?;
+    let cartoon_iter = all.query_map([], |row| {
+        Ok(Cartoon {
+            id: row.get(0)?,
+            audio: row.get(1)?,
+            year: row.get(2)?,
+            episode: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    let mut cartoon: Vec<Cartoon> = cartoon_iter.collect::<Result<Vec<_>, _>>()?;
+    cartoon.sort_by(|a, b| a.date.cmp(&b.date));
+
+    for c in cartoon {
+        data.push(vec![
+            c.id.cell(),
+            c.title.cell(),
+            c.audio.cell(),
+            c.year.cell(),
+            c.episode.cell(),
+            c.completed.cell(),
+            c.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "AUDIO".cell().bold(true),
+            "Year".cell().bold(true),
+            "EPISODE".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
 fn input() -> String {
     let mut value: String = String::new();
     io::stdin().read_line(&mut value).expect("Failed");

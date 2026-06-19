@@ -333,6 +333,55 @@ pub fn incomplete() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn order() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    let mut all = c.prepare(
+        "SELECT manga.*, main.title FROM manga JOIN main ON manga.unique_id = main.unique_id",
+    )?;
+    let manga_iter = all.query_map([], |row| {
+        Ok(Manga {
+            id: row.get(0)?,
+            tp: row.get(1)?,
+            year: row.get(2)?,
+            chapter: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    let mut manga: Vec<Manga> = manga_iter.collect::<Result<Vec<_>, _>>()?;
+    manga.sort_by(|a, b| a.date.cmp(&b.date));
+
+    for m in manga {
+        data.push(vec![
+            m.id.cell(),
+            m.title.cell(),
+            m.tp.cell(),
+            m.year.cell(),
+            m.chapter.cell(),
+            m.completed.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "TYPE".cell().bold(true),
+            "Year".cell().bold(true),
+            "CHAPTER".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
 fn input() -> String {
     let mut value: String = String::new();
     io::stdin().read_line(&mut value).expect("Failed");
