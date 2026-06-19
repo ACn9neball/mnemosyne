@@ -207,7 +207,7 @@ fn main() {
             Commands::Series => series::order().expect("Series !Displayed"),
             Commands::Cartoon => cartoon::order().expect("Cartoon !Displayed"),
             Commands::Comic => comic::order().expect("Comic !Displayed"),
-            Commands::Movie => println!("Function does not exist"),
+            Commands::Movie => movie::order().expect("Movie !Displayed"),
         }
     }
 }
