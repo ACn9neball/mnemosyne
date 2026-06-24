@@ -169,7 +169,7 @@ fn main() {
                 movie::remove(unique_id).expect("Movie !Removed");
             }
         }
-    } else if let Some(op) = cli.display {
+    } else if let Some(op) = cli.order {
         match op {
             Commands::All => center::display().expect("!Displayed"),
             Commands::Anime => anime::display().expect("Anime !Displayed"),
@@ -199,7 +199,7 @@ fn main() {
             Commands::Comic => comic::incomplete().expect("Comic !Displayed"),
             Commands::Movie => println!("Function does not exist"),
         }
-    } else if let Some(op) = cli.order {
+    } else if let Some(op) = cli.display {
         match op {
             Commands::All => println!("Error"),
             Commands::Anime => anime::order().expect("Anime !Displayed"),
