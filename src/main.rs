@@ -3,11 +3,8 @@ mod cartoon;
 mod center;
 mod comic;
 mod databse;
-mod game;
 mod manga;
 mod movie;
-mod online;
-mod project;
 mod series;
 
 use clap::{Parser, ValueEnum};
@@ -34,7 +31,10 @@ struct Cli {
     search: Option<Commands>,
 
     #[arg(short, long, value_enum)]
-    current: Option<Commands>,
+    incomplete: Option<Commands>,
+
+    #[arg(short, long, value_enum)]
+    order: Option<Commands>,
 }
 
 #[derive(ValueEnum, Clone)]
@@ -46,8 +46,6 @@ enum Commands {
     Cartoon,
     Comic,
     Movie,
-    Game,
-    Project,
 }
 
 fn main() {
@@ -64,8 +62,6 @@ fn main() {
             Commands::Cartoon => cartoon::add().expect("Cartoon !Added"),
             Commands::Comic => comic::add().expect("Comic !Added"),
             Commands::Movie => movie::add().expect("Movie !Added"),
-            Commands::Game => game::add().expect("Game !Added"),
-            Commands::Project => project::add().expect("Project !Added"),
         }
     } else if let Some(op) = cli.view {
         match op {
@@ -99,16 +95,6 @@ fn main() {
                 println!("Unique_ID");
                 unique_id = input().parse().expect("!Integer");
                 movie::view(unique_id).expect("Movie !Viewed");
-            }
-            Commands::Game => {
-                println!("Unique_ID");
-                unique_id = input().parse().expect("!Integer");
-                game::view(unique_id).expect("Game !Viewed");
-            }
-            Commands::Project => {
-                println!("Unique_ID");
-                unique_id = input().parse().expect("!Integer");
-                project::view(unique_id).expect("Project !Viewed");
             }
         }
     } else if let Some(op) = cli.update {
@@ -148,16 +134,6 @@ fn main() {
                 unique_id = input().parse().expect("!Integer");
                 movie::update(unique_id).expect("Movie !Updated");
             }
-            Commands::Game => {
-                println!("Unique_ID");
-                unique_id = input().parse().expect("!Integer");
-                game::update(unique_id).expect("Game !Updated");
-            }
-            Commands::Project => {
-                println!("Unique_ID");
-                unique_id = input().parse().expect("!Integer");
-                project::update(unique_id).expect("Project !Updated");
-            }
         }
     } else if let Some(op) = cli.remove {
         match op {
@@ -192,18 +168,8 @@ fn main() {
                 unique_id = input().parse().expect("!Integer");
                 movie::remove(unique_id).expect("Movie !Removed");
             }
-            Commands::Game => {
-                println!("Unique_ID");
-                unique_id = input().parse().expect("!Integer");
-                game::remove(unique_id).expect("Game !Removed");
-            }
-            Commands::Project => {
-                println!("Unique_ID");
-                unique_id = input().parse().expect("!Integer");
-                project::remove(unique_id).expect("Project !Removed");
-            }
         }
-    } else if let Some(op) = cli.display {
+    } else if let Some(op) = cli.order {
         match op {
             Commands::All => center::display().expect("!Displayed"),
             Commands::Anime => anime::display().expect("Anime !Displayed"),
@@ -212,8 +178,6 @@ fn main() {
             Commands::Cartoon => cartoon::display().expect("Cartoon !Displayed"),
             Commands::Comic => comic::display().expect("Comic !Displayed"),
             Commands::Movie => movie::display().expect("Movie !Displayed"),
-            Commands::Game => game::display().expect("Game !Displayed"),
-            Commands::Project => project::display().expect("Project !Displayed"),
         }
     } else if let Some(op) = cli.search {
         match op {
@@ -224,20 +188,26 @@ fn main() {
             Commands::Cartoon => cartoon::search().expect("Cartoon !Displayed"),
             Commands::Comic => comic::search().expect("Comic !Displayed"),
             Commands::Movie => movie::search().expect("Movie !Displayed"),
-            Commands::Game => game::search().expect("Game !Displayed"),
-            Commands::Project => project::search().expect("Project !Displayed"),
         }
-    } else if let Some(op) = cli.current {
+    } else if let Some(op) = cli.incomplete {
         match op {
             Commands::All => println!("Error"),
-            Commands::Anime => online::anime_ranking().expect("Anime !Displayed"),
-            Commands::Manga => online::manga_ranking().expect("Manga !Displayed"),
-            Commands::Series => series::display().expect("Series !Displayed"),
-            Commands::Cartoon => cartoon::display().expect("Cartoon !Displayed"),
-            Commands::Comic => comic::display().expect("Comic !Displayed"),
-            Commands::Movie => movie::display().expect("Movie !Displayed"),
-            Commands::Game => game::display().expect("Game !Displayed"),
-            Commands::Project => project::display().expect("Project !Displayed"),
+            Commands::Anime => anime::incomplete().expect("Anime !Displayed"),
+            Commands::Manga => manga::incomplete().expect("Manga !Displayed"),
+            Commands::Series => series::incomplete().expect("Series !Displayed"),
+            Commands::Cartoon => cartoon::incomplete().expect("Cartoon !Displayed"),
+            Commands::Comic => comic::incomplete().expect("Comic !Displayed"),
+            Commands::Movie => println!("Function does not exist"),
+        }
+    } else if let Some(op) = cli.display {
+        match op {
+            Commands::All => println!("Error"),
+            Commands::Anime => anime::order().expect("Anime !Displayed"),
+            Commands::Manga => manga::order().expect("Manga !Displayed"),
+            Commands::Series => series::order().expect("Series !Displayed"),
+            Commands::Cartoon => cartoon::order().expect("Cartoon !Displayed"),
+            Commands::Comic => comic::order().expect("Comic !Displayed"),
+            Commands::Movie => movie::order().expect("Movie !Displayed"),
         }
     }
 }

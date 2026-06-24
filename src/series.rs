@@ -41,15 +41,11 @@ pub fn add() -> Result<()> {
     }
     println!("Year");
     let year: i32 = input().parse().expect("!Integer");
-    println!("Audio [j/e/b/o]");
+    println!("Audio [e/o]");
     let audio_char: String = input().to_lowercase();
     let mut audio: String = "Other".to_string();
-    if audio_char == "j" {
-        audio = "Japanese".to_string();
-    } else if audio_char == "e" {
+    if audio_char == "e" {
         audio = "English".to_string();
-    } else if audio_char == "b" {
-        audio = "Both".to_string();
     }
     println!("Episode [S? E?]");
     let episode = input();
@@ -118,17 +114,15 @@ pub fn update(id: i64) -> Result<()> {
     let c = Connection::open(DB)?;
     println!("Year");
     let year: i32 = input().parse().unwrap_or(0);
-    println!("Audio [j/e/b/o]");
+    println!("Audio [e/o]");
     let audio_char: String = input().to_lowercase();
     let audio: String;
-    if audio_char == "j" {
-        audio = "Japanese".to_string();
-    } else if audio_char == "e" {
+    if audio_char == "e" {
         audio = "English".to_string();
-    } else if audio_char == "b" {
-        audio = "Both".to_string();
-    } else {
+    } else if audio_char == "o" {
         audio = "Other".to_string();
+    } else {
+        audio = "".to_string();
     }
     println!("Episode [S? E?]");
     let episode = input();
@@ -151,11 +145,11 @@ pub fn update(id: i64) -> Result<()> {
         title: "".to_string(),
     };
     c.execute(
-        "UPDATE series SET
+        "UPDATE series SET 
         audio = COALESCE(NULLIF(?2, ''), audio), 
         year = COALESCE(NULLIF(?3, 0), year), 
-        episode = COALESCE(NULLIF(?4, ''), episode),
-        completed = COALESCE(NULLIF(?5, ''), completed),
+        episode = COALESCE(NULLIF(?4, ''), episode), 
+        completed = COALESCE(NULLIF(?5, ''), completed), 
         date = COALESCE(NULLIF(?6, ''), date) 
     WHERE id = ?1",
         (
@@ -253,6 +247,107 @@ pub fn search() -> Result<(), Box<dyn Error>> {
     let mut data = Vec::new();
     for series in series_iter {
         let s = series.unwrap();
+        data.push(vec![
+            s.id.cell(),
+            s.title.cell(),
+            s.audio.cell(),
+            s.year.cell(),
+            s.episode.cell(),
+            s.completed.cell(),
+            s.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "AUDIO".cell().bold(true),
+            "Year".cell().bold(true),
+            "EPISODE".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn incomplete() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    let mut all = c.prepare(
+        "SELECT series.*, main.title FROM series JOIN main ON series.unique_id = main.unique_id WHERE series.completed = 'No'",
+    )?;
+
+    let series_iter = all.query_map([], |row| {
+        Ok(Series {
+            id: row.get(0)?,
+            audio: row.get(1)?,
+            year: row.get(2)?,
+            episode: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    for series in series_iter {
+        let s = series.unwrap();
+        data.push(vec![
+            s.id.cell(),
+            s.title.cell(),
+            s.audio.cell(),
+            s.year.cell(),
+            s.episode.cell(),
+            s.completed.cell(),
+            s.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "AUDIO".cell().bold(true),
+            "Year".cell().bold(true),
+            "EPISODE".cell().bold(true),
+            "COMPLETED".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn order() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    let mut all = c.prepare(
+        "SELECT series.*, main.title FROM series JOIN main ON series.unique_id = main.unique_id",
+    )?;
+    let series_iter = all.query_map([], |row| {
+        Ok(Series {
+            id: row.get(0)?,
+            audio: row.get(1)?,
+            year: row.get(2)?,
+            episode: row.get(3)?,
+            completed: row.get(4)?,
+            unique_id: row.get(5)?,
+            date: row.get(6)?,
+            title: row.get(7)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    let mut series: Vec<Series> = series_iter.collect::<Result<Vec<_>, _>>()?;
+    series.sort_by(|a, b| a.date.cmp(&b.date));
+
+    for s in series {
         data.push(vec![
             s.id.cell(),
             s.title.cell(),

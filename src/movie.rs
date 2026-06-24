@@ -119,8 +119,10 @@ pub fn update(id: i64) -> Result<()> {
         audio = "English".to_string();
     } else if audio_char == "b" {
         audio = "Both".to_string();
-    } else {
+    } else if audio_char == "o" {
         audio = "Other".to_string();
+    } else {
+        audio = "".to_string();
     }
     println!("Movie Title");
     let original = input();
@@ -221,6 +223,51 @@ pub fn search() -> Result<(), Box<dyn Error>> {
     let mut data = Vec::new();
     for movie in movie_iter {
         let m = movie.unwrap();
+        data.push(vec![
+            m.id.cell(),
+            m.original.cell(),
+            m.audio.cell(),
+            m.year.cell(),
+            m.date.cell(),
+        ]);
+    }
+
+    let table = data
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "TITLE".cell().bold(true),
+            "AUDIO".cell().bold(true),
+            "Year".cell().bold(true),
+            "DATE".cell().bold(true),
+        ])
+        .bold(true);
+
+    print_stdout(table)?;
+
+    Ok(())
+}
+
+pub fn order() -> Result<(), Box<dyn Error>> {
+    let c = Connection::open(DB)?;
+    let mut all = c.prepare(
+        "SELECT movie.*, main.title FROM movie JOIN main ON movie.unique_id = main.unique_id",
+    )?;
+    let movie_iter = all.query_map([], |row| {
+        Ok(Movie {
+            id: row.get(0)?,
+            audio: row.get(1)?,
+            year: row.get(2)?,
+            original: row.get(3)?,
+            unique_id: row.get(4)?,
+            date: row.get(5)?,
+        })
+    })?;
+    let mut data = Vec::new();
+    let mut movie: Vec<Movie> = movie_iter.collect::<Result<Vec<_>, _>>()?;
+    movie.sort_by(|a, b| a.date.cmp(&b.date));
+
+    for m in movie {
         data.push(vec![
             m.id.cell(),
             m.original.cell(),
